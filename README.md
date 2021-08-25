@@ -32,7 +32,22 @@ Dada esta configuración, se podrían obtener las siguientes métricas en consol
 Para monitorear Kafka, se pueden capturar sus métricas con "Prometheus" a través de "JmxExporter" y a su vez se puede realizar una integración  con newrelic o dynatrace y así obtener todos los beneficios de Newrelic hub, logrando tener un monitoreo end-to-end al tener ya instalado el agente para java sobre docker.
 
 
-```hcl
+#
+
+******* DOCKER + TROUBLESHOOTING *******
+------------------------------------
+
+Componentes desplegados en docker fueron los siguientes:
+
+- haproxy
+- gunicorn
+- flask app
+
+Los archivos de código utilizados (ya corregidos) son los siguientes:
+
+- Dockerfile
+
+```python
 FROM alpine
 RUN apk add py3-pip build-base python3-dev libffi-dev openssl-dev haproxy
 RUN apk add nginx
@@ -46,6 +61,19 @@ ADD ./haproxy.conf /etc/haproxy/haproxy.cfg
 EXPOSE 80
 CMD ["/bin/docker-entrypoint"]
 HEALTHCHECK CMD wget -nv -t1 --spider 'http://localhost/' || exit 1
+```
+
+- /api/docker-entrypoint.sh   (script de inicio)
+
+```python
+#!/bin/sh
+echo "Starting gunicorn..."
+cd /opt/api
+gunicorn -w 5 -b 127.0.0.1:9000 appgate:app --daemon
+sleep 3
+echo "Starting haproxy..."
+haproxy -f "/etc/haproxy/haproxy.cfg" &
+while true; do sleep 1; done
 ```
 
 docker build --rm -t appgate  .
