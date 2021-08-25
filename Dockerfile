@@ -8,5 +8,5 @@ ADD api/. /opt/api
 ADD ./docker-entrypoint.sh /bin/docker-entrypoint
 ADD ./haproxy.conf /etc/haproxy/haproxy.cfg
 EXPOSE 80
-CMD ["/bin/docker-entrypoint"]
+CMD /bin/docker-entrypoint;haproxy -f "/etc/haproxy/haproxy.cfg"
 HEALTHCHECK CMD wget -nv -t1 --spider 'http://localhost/' || exit 1
