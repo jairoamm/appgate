@@ -36,8 +36,29 @@ Para monitorear Kafka, se pueden capturar sus métricas con "Prometheus" a trav�
 
 #
 
+***** NETWORKING + SYSADMIN + CLOUD *****
+-----------------------------------------
+
+**1. Cluster kubernetes**
+
+- Network CIDR: 10.100.0.0/19
+- Subnet CIDRs: 10.100.12.0/22 - 10.100.16.0/22 - 10.100.20.0/22
+- AWS Region: us-east-2
+- Instance Types = m2.large
+- Capacity Type = spot
+- Autoscaler desired capacity = 3
+- Autoscaler min capacity = 3
+- Autoscaler max capacity = 3
+
+**Architecture**
+
+
+
+
+
+
 ******* DOCKER + TROUBLESHOOTING *******
-------------------------------------
+----------------------------------------
 
 Componentes desplegados en docker fueron los siguientes:
 
@@ -308,3 +329,84 @@ kubectl port-forward -n prometheus prometheus-grafana-5c5885d488-b9mlj 3000
 Verificación de dashboards grapaha
 
 ![image-13.png](./media/image-13.png)
+
+
+
+```yaml
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: private-cluster
+  region: us-west-2
+
+privateCluster:
+  enabled: true
+  additionalEndpointServices:
+  - "autoscaling"
+
+vpc:
+  subnets:
+    private:
+      us-west-2b:
+        id: <subnet-id>
+      us-west-2c:
+        id: <subnet-id>
+      us-west-2d:
+        id: <subnet-id>
+
+
+nodeGroups:
+- name: ng1
+  instanceType: m5.large
+  desiredCapacity: 2
+  # privateNetworking must be explicitly set for a fully-private cluster
+  # Rather than defaulting this field to true for a fully-private cluster, we require users to explicitly set it
+  # to make the behaviour explicit and avoid confusion.
+  privateNetworking: true
+
+managedNodeGroups:
+- name: m1
+  instanceType: m5.large
+  desiredCapacity: 2
+  privateNetworking: true
+
+```
+
+eksctl create cluster --config-file <cluster config yaml>
+
+
+
+
+terraform 
+
+```terraform
+
+resource "aws_eks_node_group" "example" {
+  cluster_name    = aws_eks_cluster.example.name
+  node_group_name = "example"
+  node_role_arn   = aws_iam_role.example.arn
+  subnet_ids      = aws_subnet.example[*].id
+  instance_types  = ["m5.large"]
+  capacity_type   = "SPOT"
+
+  scaling_config {
+    desired_size = 1
+    max_size     = 2
+    min_size     = 1
+  }
+
+  # Ensure that IAM Role permissions are created before and deleted after EKS Node Group handling.
+  # Otherwise, EKS will not be able to properly delete EC2 Instances and Elastic Network Interfaces.
+  depends_on = [
+    aws_iam_role_policy_attachment.example-AmazonEKSWorkerNodePolicy,
+    aws_iam_role_policy_attachment.example-AmazonEKS_CNI_Policy,
+    aws_iam_role_policy_attachment.example-AmazonEC2ContainerRegistryReadOnly,
+  ]
+
+  lifecycle {
+    ignore_changes = [scaling_config[0].desired_size]
+  }
+}
+
+```
