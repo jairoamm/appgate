@@ -53,9 +53,95 @@ Para monitorear Kafka, se pueden capturar sus métricas con "Prometheus" a trav�
 **Architecture**
 
 
+![image-14.png](./media/image-14.png)
 
+**Despliegue**
 
+**-Via eksctl**
 
+**1.** Crear el archivo de configuración "appgate-cluster.yaml"
+
+```yaml
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: private-cluster
+  region: us-east-2
+
+privateCluster:
+  enabled: true
+  additionalEndpointServices:
+  - "autoscaling"
+
+vpc:
+  subnets:
+    private:
+      us-west-2b:
+        id: <subnet-id>
+      us-west-2c:
+        id: <subnet-id>
+      us-west-2d:
+        id: <subnet-id>
+
+nodeGroups:
+- name: ng1
+  instanceType: m5.large
+  desiredCapacity: 2
+  privateNetworking: true
+```
+
+**2.** Crear el cluster utilizando el comando eksctl
+
+```python
+eksctl create cluster --config-file appgate-cluster.yaml
+```
+
+##
+
+**-Vía terraform**
+
+**1.** Crear el archivo main.tf: 
+
+```terraform
+resource "aws_eks_node_group" "example" {
+  cluster_name    = aws_eks_cluster.example.name
+  node_group_name = "example"
+  node_role_arn   = aws_iam_role.example.arn
+  subnet_ids      = aws_subnet.example[*].id
+  instance_types  = ["m5.large"]
+  capacity_type   = "SPOT"
+
+  scaling_config {
+    desired_size = 1
+    max_size     = 2
+    min_size     = 1
+  }
+
+  depends_on = [
+    aws_iam_role_policy_attachment.example-AmazonEKSWorkerNodePolicy,
+    aws_iam_role_policy_attachment.example-AmazonEKS_CNI_Policy,
+    aws_iam_role_policy_attachment.example-AmazonEC2ContainerRegistryReadOnly,
+  ]
+
+  lifecycle {
+    ignore_changes = [scaling_config[0].desired_size]
+  }
+}
+
+```
+
+**2.** Desplegar el cluster utlizando el siguiente comando:
+
+```terraform
+terraform init
+terraform apply
+```
+
+##
+
+**Nota:** Los ejemplos de despliegue anteriormente presentados no contienen la totalidad del código necesario para realizar el despliegue, pero estoy mostrando
+los componentes de código principales 
 
 ******* DOCKER + TROUBLESHOOTING *******
 ----------------------------------------
