@@ -175,7 +175,7 @@ docker run -itd --publish 6060:80 appgate
 ```python
 docker ps
 ```
-![image.png](./media/image.png)
+![image-6.png](./media/image-6.png)
 
 **4.** Revisión de estado health check
 ```python
@@ -185,7 +185,7 @@ docker inspect --format='{{json .State.Health}}' a2e95d754993
 
 **5.** Front end "hello world appgate"
 
-![image-6.png](./media/image-6.png)
+![image.png](./media/image.png)
 
 ##
 
