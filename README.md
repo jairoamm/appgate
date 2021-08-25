@@ -36,8 +36,115 @@ Para monitorear Kafka, se pueden capturar sus métricas con "Prometheus" a trav�
 
 #
 
+***** NETWORKING + SYSADMIN + CLOUD *****
+-----------------------------------------
+
+**1. Cluster kubernetes**
+
+- Network CIDR: 10.100.0.0/19
+- Subnet CIDRs: 10.100.12.0/22 - 10.100.16.0/22 - 10.100.20.0/22
+- AWS Region: us-east-2
+- Instance Types = m2.large
+- Capacity Type = spot
+- Autoscaler desired capacity = 3
+- Autoscaler min capacity = 3
+- Autoscaler max capacity = 3
+
+**Architecture**
+
+
+![image-14.png](./media/image-14.png)
+
+**Despliegue**
+
+**-Via eksctl**
+
+**1.** Crear el archivo de configuración "appgate-cluster.yaml"
+
+```yaml
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: private-cluster
+  region: us-east-2
+
+privateCluster:
+  enabled: true
+  additionalEndpointServices:
+  - "autoscaling"
+
+vpc:
+  subnets:
+    private:
+      us-west-2b:
+        id: <subnet-id>
+      us-west-2c:
+        id: <subnet-id>
+      us-west-2d:
+        id: <subnet-id>
+
+nodeGroups:
+- name: ng1
+  instanceType: m5.large
+  desiredCapacity: 2
+  privateNetworking: true
+```
+
+**2.** Crear el cluster utilizando el comando eksctl
+
+```python
+eksctl create cluster --config-file appgate-cluster.yaml
+```
+
+##
+
+**-Vía terraform**
+
+**1.** Crear el archivo main.tf: 
+
+```terraform
+resource "aws_eks_node_group" "example" {
+  cluster_name    = aws_eks_cluster.example.name
+  node_group_name = "example"
+  node_role_arn   = aws_iam_role.example.arn
+  subnet_ids      = aws_subnet.example[*].id
+  instance_types  = ["m5.large"]
+  capacity_type   = "SPOT"
+
+  scaling_config {
+    desired_size = 1
+    max_size     = 2
+    min_size     = 1
+  }
+
+  depends_on = [
+    aws_iam_role_policy_attachment.example-AmazonEKSWorkerNodePolicy,
+    aws_iam_role_policy_attachment.example-AmazonEKS_CNI_Policy,
+    aws_iam_role_policy_attachment.example-AmazonEC2ContainerRegistryReadOnly,
+  ]
+
+  lifecycle {
+    ignore_changes = [scaling_config[0].desired_size]
+  }
+}
+
+```
+
+**2.** Desplegar el cluster utlizando el siguiente comando:
+
+```terraform
+terraform init
+terraform apply
+```
+
+##
+
+**Nota:** Los ejemplos de despliegue anteriormente presentados no contienen la totalidad del código necesario para realizar el despliegue, pero estoy mostrando
+los componentes de código principales 
+
 ******* DOCKER + TROUBLESHOOTING *******
-------------------------------------
+----------------------------------------
 
 Componentes desplegados en docker fueron los siguientes:
 
@@ -175,17 +282,17 @@ docker run -itd --publish 6060:80 appgate
 ```python
 docker ps
 ```
-![image-2.png](./image-6.png)
+![image-6.png](./media/image-6.png)
 
 **4.** Revisión de estado health check
 ```python
 docker inspect --format='{{json .State.Health}}' a2e95d754993
 ```
-![image-3.png](./image-7.png)
+![image-7.png](./media/image-7.png)
 
 **5.** Front end "hello world appgate"
 
-![image.png](./media/image-8.png)
+![image.png](./media/image.png)
 
 ##
 
@@ -234,7 +341,7 @@ kubectl apply -f deployment.yaml
 ```python
 kubectl get deployment
 ```
-![image-3.png](./media/image-9.png)
+![image-2.png](./media/image-2.png)
 
 ##
 
@@ -251,13 +358,13 @@ kubectl expose deployment appgate --type=LoadBalancer --port=4000 --protocol=TCP
 kubectl get service
 ```
 
-![image-4.png](./media/image-10.png)
+![image-4.png](./media/image-4.png)
 
 ##
 
 **6.** Verificación de frontend de app corriendo sobre kubernetes:
 
-![image-5.png](./media/image-11.png)
+![image-5.png](./media/image-5.png)
 
 ##
 
@@ -287,7 +394,7 @@ helm install prometheus stable/prometheus-operator --namespace prometheus
 ```python
 kubectl get pods -n prometheus
 ```
-![image.png](./image-12.png)
+![image-12.png](./media/image-12.png)
 
 ##
 
@@ -307,4 +414,101 @@ kubectl port-forward -n prometheus prometheus-grafana-5c5885d488-b9mlj 3000
 
 Verificación de dashboards grapaha
 
-![image-1.png](./image-13.png)
+![image-13.png](./media/image-13.png)
+
+
+
+```yaml
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: private-cluster
+  region: us-west-2
+
+privateCluster:
+  enabled: true
+  additionalEndpointServices:
+  - "autoscaling"
+
+vpc:
+  subnets:
+    private:
+      us-west-2b:
+        id: <subnet-id>
+      us-west-2c:
+        id: <subnet-id>
+      us-west-2d:
+        id: <subnet-id>
+
+
+nodeGroups:
+- name: ng1
+  instanceType: m5.large
+  desiredCapacity: 2
+  # privateNetworking must be explicitly set for a fully-private cluster
+  # Rather than defaulting this field to true for a fully-private cluster, we require users to explicitly set it
+  # to make the behaviour explicit and avoid confusion.
+  privateNetworking: true
+
+managedNodeGroups:
+- name: m1
+  instanceType: m5.large
+  desiredCapacity: 2
+  privateNetworking: true
+
+```
+
+eksctl create cluster --config-file <cluster config yaml>
+
+
+
+
+terraform 
+
+```terraform
+
+resource "aws_eks_node_group" "example" {
+  cluster_name    = aws_eks_cluster.example.name
+  node_group_name = "example"
+  node_role_arn   = aws_iam_role.example.arn
+  subnet_ids      = aws_subnet.example[*].id
+  instance_types  = ["m5.large"]
+  capacity_type   = "SPOT"
+
+  scaling_config {
+    desired_size = 1
+    max_size     = 2
+    min_size     = 1
+  }
+
+  # Ensure that IAM Role permissions are created before and deleted after EKS Node Group handling.
+  # Otherwise, EKS will not be able to properly delete EC2 Instances and Elastic Network Interfaces.
+  depends_on = [
+    aws_iam_role_policy_attachment.example-AmazonEKSWorkerNodePolicy,
+    aws_iam_role_policy_attachment.example-AmazonEKS_CNI_Policy,
+    aws_iam_role_policy_attachment.example-AmazonEC2ContainerRegistryReadOnly,
+  ]
+
+  lifecycle {
+    ignore_changes = [scaling_config[0].desired_size]
+  }
+}
+
+
+```
+##
+##
+##
+# Trabajo Personal
+
+A continuación les presento algunos repo donde podrán observar el trabajo que he relizado con "cloudformation", "terraform" y con herramientas de testing como "terratest" y "chef ispec":
+
+- https://gitlab.com/jaamarti/comsearch/-/tree/master/
+- https://gitlab.com/jaamarti/terraform-infra
+- https://gitlab.com/jaamarti/aws-infra/-/tree/master
+
+##
+##
+##
+
