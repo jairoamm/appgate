@@ -76,6 +76,44 @@ haproxy -f "/etc/haproxy/haproxy.cfg" &
 while true; do sleep 1; done
 ```
 
+- api/appgate.py   (código app flask)
+
+```python
+from flask import Flask, jsonify
+
+app = Flask(__name__)
+
+@app.route('/', methods=['GET'])
+def hello():
+    return "<h1 style='color:blue'>Hello! This is Appgate world!</h1>"
+
+if __name__ == '__main__':
+    app.run(host="0.0.0.0", port=9000, debug=True)
+```
+
+- api/wsgi.py   (puerta integración app flask y gunicorn)
+
+
+```python
+from appgate import app
+
+if __name__ == "__main__":
+        app.run()
+```        
+
+- api/requirements.txt    (archivo plano lista de paquetes requeridos a instalar con pip3)
+
+```python
+click==8.0.1
+colorama==0.4.4
+Flask==2.0.1
+gunicorn
+itsdangerous==2.0.1
+Jinja2==3.0.1
+MarkupSafe==2.0.1
+Werkzeug==2.0.1
+```
+
 docker build --rm -t appgate  .
 
 docker run -itd --publish 6060:80 appgate
