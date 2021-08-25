@@ -31,4 +31,4 @@ Dada esta configuración, se podrían obtener las siguientes métricas en consol
 
 Para monitorear Kafka, se pueden capturar sus métricas con "Prometheus" a través de "JmxExporter" y a su vez se puede realizar una integración  con newrelic o dynatrace y así obtener todos los beneficios de Newrelic hub, logrando tener un monitoreo end-to-end al tener ya instalado el agente para java sobre docker.
 
-![image.png](./image.png)
+
