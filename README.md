@@ -76,16 +76,24 @@ haproxy -f "/etc/haproxy/haproxy.cfg" &
 while true; do sleep 1; done
 ```
 
-docker build --rm -t appgate  .
+**Procedimiento despliegue docker:**
 
+1. Compilación imagen utilizando el dockerfile
+```python
+docker build -t appgate  .
+```
+
+2. Lanzamiento de contenedor:
+```python
 docker run -itd --publish 6060:80 appgate
+```
 
+3. Listado contenedores activos:
+```python
 docker ps
+```
+![image-1.png](./media/image-1.png)
 
-
-
-
-![image-1.png](./image-1.png)
 
 
 
