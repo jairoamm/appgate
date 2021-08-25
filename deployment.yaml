@@ -1,0 +1,27 @@
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app.kubernetes.io/name: load-balancer-appgate
+  name: appgate
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: load-balancer-appgate
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: load-balancer-appgate
+    spec:
+      containers:
+      - image: appgate:latest
+        name: appgate
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 80
+        command: ["/bin/sh", "-ec", "while :; do echo '.'; sleep 5 ; done"]
+        env:
+        - name: KLAUS_PORT
+          value: "80"
