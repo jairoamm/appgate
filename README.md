@@ -287,4 +287,24 @@ helm install prometheus stable/prometheus-operator --namespace prometheus
 ```python
 kubectl get pods -n prometheus
 ```
+![image.png](./image.png)
+
 ##
+
+**11.** Exponer servicio prometheus:
+
+```python
+kubectl port-forward -n prometheus prometheus-prometheus-prometheus-oper-prometheus-0 9090
+```
+##
+
+**12.** Exponer servicio Graphana:
+
+```python
+kubectl port-forward -n prometheus prometheus-grafana-5c5885d488-b9mlj 3000
+```
+##
+
+Verificación de dashboards grapaha
+
+![image-1.png](./image-1.png)
