@@ -260,3 +260,31 @@ kubectl get service
 ![image-5.png](./media/image-5.png)
 
 ##
+
+**7.** Instalé "helm" para win10
+
+```python
+kubectl port-forward -n prometheus prometheus-grafana
+```
+##
+
+**8.** Creación namespace prometheus:
+
+```python
+kubectl create namespace prometheus
+```
+##
+
+**9.** Instalación de prometheus y graphana:
+
+```python
+helm install prometheus stable/prometheus-operator --namespace prometheus
+```
+##
+
+**10.** Verificación del despliegue:
+
+```python
+kubectl get pods -n prometheus
+```
+##
