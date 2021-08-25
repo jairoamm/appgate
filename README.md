@@ -181,7 +181,7 @@ docker ps
 ```python
 docker inspect --format='{{json .State.Health}}' a2e95d754993
 ```
-![image-7.png](./image-7.png)
+![image-7.png](./media/image-7.png)
 
 **5.** Front end "hello world appgate"
 
@@ -287,7 +287,7 @@ helm install prometheus stable/prometheus-operator --namespace prometheus
 ```python
 kubectl get pods -n prometheus
 ```
-![image-12.png](./image-12.png)
+![image-12.png](./media/image-12.png)
 
 ##
 
@@ -307,4 +307,4 @@ kubectl port-forward -n prometheus prometheus-grafana-5c5885d488-b9mlj 3000
 
 Verificación de dashboards grapaha
 
-![image-1.png](./image-13.png)
+![image-13.png](./media/image-13.png)
