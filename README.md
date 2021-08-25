@@ -99,7 +99,7 @@ docker ps
 
 docker inspect --format='{{json .State.Health}}' a2e95d754993
 
-![image-2.png](./image-2.png)
+![image-2.png](./media/image-2.png)
 
 
 
