@@ -175,7 +175,7 @@ docker run -itd --publish 6060:80 appgate
 ```python
 docker ps
 ```
-![image-6.png](./image-6.png)
+![image.png](./media/image.png)
 
 **4.** Revisión de estado health check
 ```python
