@@ -495,4 +495,20 @@ resource "aws_eks_node_group" "example" {
   }
 }
 
+
 ```
+##
+##
+##
+# Trabajo Personal
+
+A continuación les presento algunos repo donde podrán observar el trabajo que he relizado con "cloudformation", "terraform" y con herramientas de testing como "terratest" y "chef ispec":
+
+- https://gitlab.com/jaamarti/comsearch/-/tree/master/
+- https://gitlab.com/jaamarti/terraform-infra
+- https://gitlab.com/jaamarti/aws-infra/-/tree/master
+
+##
+##
+##
+
