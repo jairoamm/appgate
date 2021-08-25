@@ -185,15 +185,78 @@ docker inspect --format='{{json .State.Health}}' a2e95d754993
 
 **5.** Front end "hello world appgate"
 
-![image.png](./image.png)
+![image.png](./media/image.png)
 
+##
 
+***** KUBERNETES *****
+----------------------
 
+**1.** Creación archivo despliegue "deployment.yaml":
 
+```python
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app.kubernetes.io/name: load-balancer-appgate
+  name: appgate
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: load-balancer-appgate
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: load-balancer-appgate
+    spec:
+      containers:
+      - image: appgate:latest
+        name: appgate
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 80
+```
 
+##
+
+**2.** Ejecución comando de despliegue:
+
+```python
 kubectl apply -f deployment.yaml
+```
 
+##
 
+**3.** Comando verficación despliegue:
 
+```python
+kubectl get deployment
+```
+![image-3.png](./media/image-3.png)
 
-kubectl expose deployment appgate --type=LoadBalancer --port=4000 --protocol=TCP --target-port=80 --name=appgate-service
+##
+
+**4.** Expose deployment with a service:
+
+```python
+kubectl expose deployment appgate --type=LoadBalancer --port=4000 --protocol=TCP --name=appgate-service
+```
+##
+
+**5.** Verificación del servicio desplegado:
+
+```python
+kubectl get service
+```
+
+![image-4.png](./media/image-4.png)
+
+##
+
+**6.** Verificación de frontend de app corriendo sobre kubernetes:
+
+![image-5.png](./media/image-5.png)
+
+##
