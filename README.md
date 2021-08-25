@@ -32,3 +32,17 @@ Dada esta configuración, se podrían obtener las siguientes métricas en consol
 Para monitorear Kafka, se pueden capturar sus métricas con "Prometheus" a través de "JmxExporter" y a su vez se puede realizar una integración  con newrelic o dynatrace y así obtener todos los beneficios de Newrelic hub, logrando tener un monitoreo end-to-end al tener ya instalado el agente para java sobre docker.
 
 
+
+docker build --rm -t appgate  .
+
+docker run -itd --publish 6060:80 appgate
+
+
+
+
+kubectl apply -f deployment.yaml
+
+```hcl
+
+
+kubectl expose deployment appgate --type=LoadBalancer --port=4000 --protocol=TCP --target-port=80 --name=appgate-service
