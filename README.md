@@ -121,7 +121,8 @@ while true; do sleep 1; done
 
 **Cambios:**
 - Agregué una línea para cambiar al directorio 
-- Removí la declaración de los archivos de error. A este punto simplemente es un workaround porque finalmente la solución final es asegurar que existan estos archivos.
+- Corregí el texto de los "echo"
+- Al final agregué "while" para asegurar que el contenedor no se detendrá al ser desplegado y por el contrario seguirá corriendo en background
 
 ##
 
@@ -138,6 +139,10 @@ def hello():
 
 if __name__ == '__main__':
 ```
+
+**Cambios:**
+- Este archivo lo agregué por completo y básicamente tenero una respuesta html ante la invocación de la aplicación al seleccionar la ruta "/"
+
 ##
 
 **- /api/wsgi.py**  (código de aplicación backend de flask)
@@ -147,6 +152,10 @@ from appgate import app
 if __name__ == "__main__":
         app.run()
 ```
+
+**Cambios:**
+- Este archivo lo agregué para hacer un import de la aplicación "app" y sirve como integración con gunicorn
+
 ##
 
 
