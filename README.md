@@ -175,17 +175,17 @@ docker run -itd --publish 6060:80 appgate
 ```python
 docker ps
 ```
-![image-1.png](./media/image-1.png)
+![image-2.png](./image-6.png)
 
 **4.** Revisión de estado health check
 ```python
 docker inspect --format='{{json .State.Health}}' a2e95d754993
 ```
-![image-2.png](./media/image-2.png)
+![image-3.png](./image-7.png)
 
 **5.** Front end "hello world appgate"
 
-![image.png](./media/image.png)
+![image.png](./media/image-8.png)
 
 ##
 
@@ -234,7 +234,7 @@ kubectl apply -f deployment.yaml
 ```python
 kubectl get deployment
 ```
-![image-3.png](./media/image-3.png)
+![image-3.png](./media/image-9.png)
 
 ##
 
@@ -251,13 +251,13 @@ kubectl expose deployment appgate --type=LoadBalancer --port=4000 --protocol=TCP
 kubectl get service
 ```
 
-![image-4.png](./media/image-4.png)
+![image-4.png](./media/image-10.png)
 
 ##
 
 **6.** Verificación de frontend de app corriendo sobre kubernetes:
 
-![image-5.png](./media/image-5.png)
+![image-5.png](./media/image-11.png)
 
 ##
 
@@ -287,7 +287,7 @@ helm install prometheus stable/prometheus-operator --namespace prometheus
 ```python
 kubectl get pods -n prometheus
 ```
-![image.png](./image.png)
+![image.png](./image-12.png)
 
 ##
 
@@ -307,4 +307,4 @@ kubectl port-forward -n prometheus prometheus-grafana-5c5885d488-b9mlj 3000
 
 Verificación de dashboards grapaha
 
-![image-1.png](./image-1.png)
+![image-1.png](./image-13.png)
