@@ -15,10 +15,12 @@ Procedimiento:
 
 Este es un ejemplo de parámetros de configuración que se deberían agregar sobre el archivo Dockerfile con el cual se están desplegando los microservicios java. Básicamente se deben agregar las siguientes líneas:
 
+```python
 RUN mkdir -p /usr/local/tomcat/newrelic
 ADD ./newrelic/newrelic.jar /usr/local/tomcat/newrelic/newrelic.jar
-ENV JAVA_OPTS="$JAVA_OPTS -javaagent:/usr/local/tomcat/newrelic/newrelic.jar" -Dnewrelic.config.app_name='MY_APP_NAME'"
+ENV JAVA_OPTS="$JAVA_OPTS -javaagent:/usr/local/tomcat/newrelic/newrelic.jar -Dnewrelic.config.app_name='MY_APP_NAME'"
 ADD ./newrelic/newrelic.yml /usr/local/tomcat/newrelic/newrelic.yml
+```
 
 Dada esta configuración, se podrían obtener las siguientes métricas en consola:
 
@@ -45,12 +47,13 @@ Componentes desplegados en docker fueron los siguientes:
 
 Los archivos de código utilizados (ya corregidos) son los siguientes:
 
-- Dockerfile
+![image-1.png](./image-1.png)
+
+**- Dockerfile**
 
 ```python
 FROM alpine
 RUN apk add py3-pip build-base python3-dev libffi-dev openssl-dev haproxy
-RUN apk add nginx
 RUN mkdir -p /opt/api
 WORKDIR /opt/api
 ADD api/requirements.txt /opt/api
@@ -62,8 +65,48 @@ EXPOSE 80
 CMD ["/bin/docker-entrypoint"]
 HEALTHCHECK CMD wget -nv -t1 --spider 'http://localhost/' || exit 1
 ```
+**Cambios:**
+- Agregué el paquete "haproxy" a los paquetes que se deen instalar con apk
+- agregué un HEALTHCHECK para poder capurar en cualquier instante de tiempo el estado del contenedor
 
-- /api/docker-entrypoint.sh   (script de inicio)
+##
+
+**- haproxy.conf**
+```python
+global
+   maxconn 8192
+
+defaults
+   log stdout format raw local0
+   mode http
+   option httplog
+   option forwardfor
+   option httpclose
+   option dontlognull
+
+   timeout connect 10s
+   timeout client 150s
+   timeout server 150s
+
+   maxconn 8192
+
+frontend app-http
+   bind *:80
+
+   acl is_app path_beg -i /
+   use_backend flask_backend if is_app
+
+backend flask_backend
+   server docker-app 127.0.0.1:9000 check verify none
+```
+
+**Cambios:**
+- Modifiqué el hostname del backend con la ip lookup 127.0.0.1 de tal forma que se puediera evitar el error de no resolución de dns.
+- Removí la declaración de los archivos de error. A este punto simplemente es un workaround porque finalmente la solución final es asegurar que existan estos archivos.
+
+##
+
+**- /api/docker-entrypoint.sh**   (script de inicio)
 
 ```python
 #!/bin/sh
@@ -76,30 +119,65 @@ haproxy -f "/etc/haproxy/haproxy.cfg" &
 while true; do sleep 1; done
 ```
 
+**Cambios:**
+- Agregué una línea para cambiar al directorio 
+- Removí la declaración de los archivos de error. A este punto simplemente es un workaround porque finalmente la solución final es asegurar que existan estos archivos.
+
+##
+
+**- /api/appgate.py**  (código de aplicación backend de flask)
+
+```python
+from flask import Flask, jsonify
+
+app = Flask(__name__)
+
+@app.route('/', methods=['GET'])
+def hello():
+    return "<h1 style='color:blue'>Hello! This is Appgate world!</h1>"
+
+if __name__ == '__main__':
+```
+##
+
+**- /api/wsgi.py**  (código de aplicación backend de flask)
+```python
+from appgate import app
+
+if __name__ == "__main__":
+        app.run()
+```
+##
+
+
 **Procedimiento despliegue docker:**
 
-1. Compilación imagen utilizando el dockerfile
+**1.** Compilación imagen utilizando el dockerfile
 ```python
 docker build -t appgate  .
 ```
 
-2. Lanzamiento de contenedor:
+**2.** Lanzamiento de contenedor:
 ```python
 docker run -itd --publish 6060:80 appgate
 ```
 
-3. Listado contenedores activos:
+**3.** Listado contenedores activos:
 ```python
 docker ps
 ```
 ![image-1.png](./media/image-1.png)
 
-
-
-
+**4.** Revisión de estado health check
+```python
 docker inspect --format='{{json .State.Health}}' a2e95d754993
-
+```
 ![image-2.png](./media/image-2.png)
+
+**5.** Front end "hello world appgate"
+
+![image.png](./image.png)
+
 
 
 
