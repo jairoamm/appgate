@@ -21,7 +21,3 @@ spec:
         imagePullPolicy: Never
         ports:
         - containerPort: 80
-        command: ["/bin/sh", "-ec", "while :; do echo '.'; sleep 5 ; done"]
-        env:
-        - name: KLAUS_PORT
-          value: "80"

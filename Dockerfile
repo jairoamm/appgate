@@ -1,6 +1,5 @@
 FROM alpine
 RUN apk add py3-pip build-base python3-dev libffi-dev openssl-dev haproxy
-RUN apk add nginx
 RUN mkdir -p /opt/api
 WORKDIR /opt/api
 ADD api/requirements.txt /opt/api
