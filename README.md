@@ -183,8 +183,8 @@ segmentos públicos y 3 para segmentos privados.
 
 **Respuesta:**
 
-Según mi interpretación, entiendo que deberían generarse 4 subredes (por ambiente) y que a su vez cada subred debe distribuirse en 3 AZs, por lo cual el calculó hasta el momento iría en "4*3" y adicionalmente se deben tener 6 subredes (3 públicas y 3 privadas) por ambiente, es decir, 
-"12*6" para un total de 72 subredes. De tal forma que las subredes que se deberían generar a partir de al red 10.100.32.0/22 serían las siguintes:
+Según mi interpretación, entiendo que deberían generarse 4 subredes (por cada ambiente) y adicionalmente que por cada uno deberian haber 6 subredes (3 públicas y 3 privadas) por ambiente y que a su vez cada subred debe distribuirse en 3 AZs, por lo cual el calculó 4 x 6 x 3 = 72. De tal forma que las subredes que se deberían generar a partir de al red
+10.100.32.0/22 serían las siguintes:
 
 ```text
 10.100.32.0/28
@@ -260,6 +260,7 @@ Según mi interpretación, entiendo que deberían generarse 4 subredes (por ambi
 10.100.35.247/29
 10.100.35.255/29
 ```
+En donde finalmente la mitad serían públicas y la otra mitas de subredes para segmentos privados.
 
 **Nota:** Creo que el texto no es totalmente claro y se puede presentar para tener diferentes interpretaciones.
 
