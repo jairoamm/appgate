@@ -64,7 +64,7 @@ Para monitorear Kafka, se pueden capturar sus m√©tricas con "Prometheus" a trav√
 **Architecture**
 
 
-![image-14.png](./media/image-14.png)
+![image-17.png](./media/image-17.png)
 
 
 **Despliegue**
