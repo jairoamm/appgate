@@ -363,7 +363,7 @@ reusable en cualquier instante de tiempo en el futuro y que con un simple comand
 
 **Costo de implementación:**
 
-![image-16.png](./media/image-16.png)
+![image-18.png](./media/image-18.png)
 
 
 Los costos los calculé desde la herramienta oficial de AWS. Comparto el link que contiene esta estimacion y en donde se podrán observar los detalles de cada 
