@@ -174,6 +174,98 @@ Para realizar el despliegue de esta RDS, tengo un repo de ejemplo que construí 
 https://gitlab.com/jaamarti/comsearch-lego-modules/-/tree/main/tf-rds
 
 
+##
+
+**3. Un clúster de Kafka**
+--------------------------
+
+Características de Amazon Managed Streaming for Apache Kafka (Amazon MSK):
+
+- Broker nodes                : 2
+- Broker node types           : m5.large
+- Storage size                : 1 TB
+- Inbound Data Transfer       : 1 TB / month
+- Intra-Region Data Transfer  : 1 TB / month
+- Outbound Data Transfer      : 1 TB / month
+
+##
+
+**4. Un clúster de MongoDB**
+--------------------------
+
+Apesar que no hay un servicio exacto de cluster mongoDB, en una colaboración entre AWS y MongoDB, se generaron una serie de templates tanto de instalación de MongoDB
+como de los recursos aws que soportan el cluster y que se despliegan con cloudformation. El repositorio que tiene el código para hacer este despliegue es el siguiente:
+
+https://github.com/aws-quickstart/quickstart-mongodb
+
+La arquitectura propuesta es la siguiente:
+
+![image-15.png](./media/image-15.png)
+
+**Características:**
+
+- Cantidad instancias ec2     : 3
+- Tipo de instancias          : m5.large
+- Tipo de almacenamiento      : Provisioned IOPS SSD (io1)
+- Tipo de capacidad           : Reserved instance
+- Tamaño almacenamiento / nodo: 500 GB
+
+##
+
+**5. 4 nodos EC2 que contiene servicios**
+
+**Características:**
+
+- Cantidad instancias ec2     : 4
+- Tipo de instancias          : m6g.2xlarge
+- Tipo de almacenamiento      : gp2
+- Tipo de capacidad           : SPOT
+- Tamaño almacenamiento / nodo: 500 GB
+
+Para este servicio yo esperaría que los servicios pudieran detenerse e iniciar en cualquier instante de tiempo, de tal forma que fuera posible utilizar instancias 
+tipo spot y adicionalmente esperaría poder tener un ASG que me ayudara a liberar y eliminar inistancias que no estuvieran siendo realmente utilizadas.
+
+**Despliegue:**
+
+Tengo un repositorio con código terraform que en algún momento cree para desplegar instancias EC2 con base a una ami asociadas a un launch template 
+y a un Auto scaling group:
+
+https://gitlab.com/jaamarti/comsearch-lego-modules/-/tree/main/tf-ec2
+
+
+##
+##
+
+**Tiempo de implementación:**
+
+Teniendo en cuenta que los recursos podrían ser desplegados por medio de cloudformation o terraform, e incluso podrían estar asociados a un pipeline para 
+asegurar un correcto CI/CD, el tiempo de implementación para crear el código (IAC) con una documentación adecuada, sería:
+
+- Un clúster de Kubernetes (Contiene el backend y frontend)   -> 24 horas
+- Un clúster de Kafka                                         -> 8  horas     
+- Una base de datos en PostgreSQL (RDS o EC2)                 -> 4  horas
+- Un clúster de MongoDB                                       -> 16 horas
+- 4 nodos EC2 que contiene servicios.                         -> 4  horas
+
+**Total:* 56 horas.
+
+***Nota:*** Esa estimación de tiempo se daría porque básicamente se usaría para crear modulos completos y bien documentados de código que podría ser totalmente
+reusable en cualquier instante de tiempo en el futuro y que con un simple comando de apply podría llegar a utilizarse y a desplegar los servicios deseados.
+
+
+**Costo de implementación:**
+
+![image-16.png](./media/image-16.png)
+
+Los costos los calculé desde la herramienta oficial de AWS. Comparto el link que contiene esta estimacion y en donde se podrán observar los detalles de cada 
+servicio discrimiado por plataforma:
+
+https://calculator.aws/#/estimate?id=53a7744642f7adbd1421c28b93df48527e76839b
+
+
+##
+
+
 ******* DOCKER + TROUBLESHOOTING *******
 ----------------------------------------
 
