@@ -87,7 +87,7 @@ Existe un plugin de Newrelic que puede ser utilizado para capturar diferentes m�
 - Autoscaler min capacity = 3
 - Autoscaler max capacity = 3
 
-**Architecture**
+**Arquitectura**
 
 
 ![image-17.png](./media/image-17.png)
@@ -512,6 +512,8 @@ if __name__ == "__main__":
 docker build -t appgate  .
 ```
 
+**Nota:** Adicionalmente hice un push de esta nueva imagen a un registry personal público en Dockerhub (https://hub.docker.com/r/jaamarti/appgate/tags)
+
 **2.** Lanzamiento de contenedor:
 ```python
 docker run -itd --publish 6060:80 appgate
@@ -555,7 +557,8 @@ input {
 }
 ```
 
-Despues definiría expresiones en kibana para capturar indices y así realizar los dashboard y el analisis de data necesario con Kibana.
+Despues definiría expresiones en kibana para capturar indices y así realizar los dashboard y el analisis de data necesario con Kibana. Adicionalmente podría
+utilizar otras herramientas que he usado en el pasado com IBM Log Analysis o Logmon de CA UIM.
 
 ##
 ##
@@ -666,6 +669,13 @@ status:
 ```python
 kubectl apply -f service.yaml
 ```
+
+Adicionalmente podría crear mi servicio sin utilizar el manifiesto anterior simplemente ejecutando el siguiente comando:
+
+```python
+kubectl expose deployment appgate --type=LoadBalancer --port=5000 --target-port=80 --protocol=TCP --name=appgate-service
+```
+
 ##
 
 **5.** Verificación del servicio desplegado:
@@ -732,6 +742,20 @@ kubectl port-forward -n prometheus prometheus-grafana-5c5885d488-b9mlj 3000
 
 ![image-13.png](./media/image-13.png)
 
+##
+
+**14.** Adicionalmente las métricas del cluster de kubernetes son efectivamente capturadas y se pueden verificar aqui:
+
+![image](https://user-images.githubusercontent.com/86493114/130974445-45837825-e3aa-4818-9de8-3208a6208b26.png)
+
+##
+
+**15.** El siguiente es un  ejemplo de un dashboard que cree utilizando una métrica del cluster de kubernetes en Graphana:
+
+![image](https://user-images.githubusercontent.com/86493114/130975411-0bf5e790-6520-4f8d-ad60-9ad3443f90de.png)
+
+##
+##
 ##
 
 **Conclusiones**:
