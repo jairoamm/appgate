@@ -40,11 +40,12 @@ Para monitorear Kafka, se pueden capturar sus métricas con "Prometheus" a trav�
 -----------------------------------------
 
 **1. Cluster kubernetes**
+-------------------------
 
 - Network CIDR: 10.100.0.0/19
 - Subnet CIDRs: 10.100.12.0/22 - 10.100.16.0/22 - 10.100.20.0/22
 - AWS Region: us-east-2
-- Instance Types = m2.large
+- Instance Types = m5.large
 - Capacity Type = spot
 - Autoscaler desired capacity = 3
 - Autoscaler min capacity = 3
@@ -84,10 +85,10 @@ vpc:
       us-west-2d:
         id: <subnet-id>
 
-nodeGroups:
+managedNodeGroups:
 - name: ng1
   instanceType: m5.large
-  desiredCapacity: 2
+  desiredCapacity: 3
   privateNetworking: true
 ```
 
@@ -114,7 +115,7 @@ resource "aws_eks_node_group" "example" {
 
   scaling_config {
     desired_size = 1
-    max_size     = 2
+    max_size     = 
     min_size     = 1
   }
 
@@ -141,6 +142,20 @@ terraform apply
 ##
 
 **Nota:** Los ejemplos de despliegue anteriormente presentados no contienen la totalidad del código necesario para realizar el despliegue, pero estoy mostrando
+
+##
+
+**2. Una base de datos en PostgreSQL**
+--------------------------------------
+
+Características RDS:
+
+- Instance node type  : db.m5.large
+- Deployment type     : multi-az
+- Storage type        : gp2
+- Allocated storage   : 500 GB
+
+
 los componentes de código principales 
 
 ******* DOCKER + TROUBLESHOOTING *******
@@ -169,11 +184,12 @@ ADD api/. /opt/api
 ADD ./docker-entrypoint.sh /bin/docker-entrypoint
 ADD ./haproxy.conf /etc/haproxy/haproxy.cfg
 EXPOSE 80
-CMD ["/bin/docker-entrypoint"]
+CMD /bin/docker-entrypoint;haproxy -f "/etc/haproxy/haproxy.cfg"
 HEALTHCHECK CMD wget -nv -t1 --spider 'http://localhost/' || exit 1
 ```
 **Cambios:**
 - Agregué el paquete "haproxy" a los paquetes que se deen instalar con apk
+- Definí el inicio del balanceador como la última instrucción del CMD sin el "&" de tal manera que puediera asegurar que el contenedor seguiera ejecutandose
 - agregué un HEALTHCHECK para poder capurar en cualquier instante de tiempo el estado del contenedor
 
 ##
@@ -215,21 +231,17 @@ backend flask_backend
 
 **- /api/docker-entrypoint.sh**   (script de inicio)
 
-```python
+```shell
 #!/bin/sh
 echo "Starting gunicorn..."
-cd /opt/api
 gunicorn -w 5 -b 127.0.0.1:9000 appgate:app --daemon
 sleep 3
-echo "Starting haproxy..."
-haproxy -f "/etc/haproxy/haproxy.cfg" &
-while true; do sleep 1; done
 ```
 
 **Cambios:**
-- Agregué una línea para cambiar al directorio 
 - Corregí el texto de los "echo"
-- Al final agregué "while" para asegurar que el contenedor no se detendrá al ser desplegado y por el contrario seguirá corriendo en background
+- Retiré el llamado del haproxy y lo puse como una instrucción aparte para que el contenedor no terminara despues de ejecutar el script sino que por el contrario continuara
+  corriendo y el log del contenedor fuera finalmente el output del balancedor haproxy.
 
 ##
 
@@ -301,7 +313,7 @@ docker inspect --format='{{json .State.Health}}' a2e95d754993
 
 **1.** Creación archivo despliegue "deployment.yaml":
 
-```python
+```yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -345,10 +357,47 @@ kubectl get deployment
 
 ##
 
-**4.** Expose deployment with a service:
+**4.** Creación de la definición del servicio "service.yaml":
+
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  creationTimestamp: "2021-08-26T00:59:49Z"      
+  labels:
+    app.kubernetes.io/name: load-balancer-appgate
+  name: appgate-service
+  namespace: default
+  resourceVersion: "63013"
+  uid: ed63b818-3340-423b-a650-e577b6522e10      
+spec:
+  clusterIP: 10.105.210.183
+  clusterIPs:
+  - 10.105.210.183
+  externalTrafficPolicy: Cluster
+  ipFamilies:
+  - IPv4
+  ipFamilyPolicy: SingleStack
+  ports:
+  - nodePort: 30790
+    port: 5000
+    protocol: TCP
+    targetPort: 80
+  selector:
+    app.kubernetes.io/name: load-balancer-appgate
+  sessionAffinity: None
+  type: LoadBalancer
+status:
+  loadBalancer:
+    ingress:
+    - ip: 127.0.0.1
+```
+##
+
+**5.** Ejecución comando de despliegue:
 
 ```python
-kubectl expose deployment appgate --type=LoadBalancer --port=4000 --protocol=TCP --name=appgate-service
+kubectl apply -f service.yaml
 ```
 ##
 
@@ -362,34 +411,34 @@ kubectl get service
 
 ##
 
-**6.** Verificación de frontend de app corriendo sobre kubernetes:
+**7.** Verificación de frontend de app corriendo sobre kubernetes:
 
 ![image-5.png](./media/image-5.png)
 
 ##
 
-**7.** Instalé "helm" para win10
+**8.** Instalé "helm" para win10
 
 ```python
 kubectl port-forward -n prometheus prometheus-grafana
 ```
 ##
 
-**8.** Creación namespace prometheus:
+**9.** Creación namespace prometheus:
 
 ```python
 kubectl create namespace prometheus
 ```
 ##
 
-**9.** Instalación de prometheus y graphana:
+**10.** Instalación de prometheus y graphana:
 
 ```python
 helm install prometheus stable/prometheus-operator --namespace prometheus
 ```
 ##
 
-**10.** Verificación del despliegue:
+**11.** Verificación del despliegue:
 
 ```python
 kubectl get pods -n prometheus
@@ -398,105 +447,25 @@ kubectl get pods -n prometheus
 
 ##
 
-**11.** Exponer servicio prometheus:
+**12.** Exponer servicio prometheus:
 
 ```python
 kubectl port-forward -n prometheus prometheus-prometheus-prometheus-oper-prometheus-0 9090
 ```
 ##
 
-**12.** Exponer servicio Graphana:
+**13.** Exponer servicio Graphana:
 
 ```python
 kubectl port-forward -n prometheus prometheus-grafana-5c5885d488-b9mlj 3000
 ```
 ##
 
-Verificación de dashboards grapaha
+**13.** Verificación de dashboards grapaha
 
 ![image-13.png](./media/image-13.png)
 
 
-
-```yaml
-apiVersion: eksctl.io/v1alpha5
-kind: ClusterConfig
-
-metadata:
-  name: private-cluster
-  region: us-west-2
-
-privateCluster:
-  enabled: true
-  additionalEndpointServices:
-  - "autoscaling"
-
-vpc:
-  subnets:
-    private:
-      us-west-2b:
-        id: <subnet-id>
-      us-west-2c:
-        id: <subnet-id>
-      us-west-2d:
-        id: <subnet-id>
-
-
-nodeGroups:
-- name: ng1
-  instanceType: m5.large
-  desiredCapacity: 2
-  # privateNetworking must be explicitly set for a fully-private cluster
-  # Rather than defaulting this field to true for a fully-private cluster, we require users to explicitly set it
-  # to make the behaviour explicit and avoid confusion.
-  privateNetworking: true
-
-managedNodeGroups:
-- name: m1
-  instanceType: m5.large
-  desiredCapacity: 2
-  privateNetworking: true
-
-```
-
-eksctl create cluster --config-file <cluster config yaml>
-
-
-
-
-terraform 
-
-```terraform
-
-resource "aws_eks_node_group" "example" {
-  cluster_name    = aws_eks_cluster.example.name
-  node_group_name = "example"
-  node_role_arn   = aws_iam_role.example.arn
-  subnet_ids      = aws_subnet.example[*].id
-  instance_types  = ["m5.large"]
-  capacity_type   = "SPOT"
-
-  scaling_config {
-    desired_size = 1
-    max_size     = 2
-    min_size     = 1
-  }
-
-  # Ensure that IAM Role permissions are created before and deleted after EKS Node Group handling.
-  # Otherwise, EKS will not be able to properly delete EC2 Instances and Elastic Network Interfaces.
-  depends_on = [
-    aws_iam_role_policy_attachment.example-AmazonEKSWorkerNodePolicy,
-    aws_iam_role_policy_attachment.example-AmazonEKS_CNI_Policy,
-    aws_iam_role_policy_attachment.example-AmazonEC2ContainerRegistryReadOnly,
-  ]
-
-  lifecycle {
-    ignore_changes = [scaling_config[0].desired_size]
-  }
-}
-
-
-```
 ##
 ##
 ##
