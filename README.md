@@ -1,4 +1,4 @@
-APP GATE TECHINICAL TEST
+APPGATE TECHINICAL TEST
 ========================
 
 ***** SYSADMIN *****
