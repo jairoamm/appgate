@@ -596,17 +596,19 @@ spec:
         app.kubernetes.io/name: load-balancer-appgate
     spec:
       containers:
-      - image: appgate:latest
-        name: appgate
-        imagePullPolicy: Never
-        ports:
-        - containerPort: 80
-        readinessProbe:
-          tcpSocket:
-            port: 80
-          initialDelaySeconds: 5
-          periodSeconds: 10
+        - image: docker.io/jaamarti/appgate:v1
+          name: appgate
+          imagePullPolicy: Always
+          ports:
+          - containerPort: 80
+          readinessProbe:
+            tcpSocket:
+              port: 80
+            initialDelaySeconds: 5
+            periodSeconds: 10
 ```
+
+**Nota:** la imagen utilizada es una imagen que subí a mi registry en dockerhub
 
 ##
 
