@@ -43,7 +43,17 @@ Para monitorear Kafka, se pueden capturar sus métricas con "Prometheus" a trav�
 -------------------------
 
 - Network CIDR: 10.100.0.0/19
-- Subnet CIDRs: 10.100.12.0/22 - 10.100.16.0/22 - 10.100.20.0/22
+- Subnet CIDRs: 
+  - 10.100.0.0/21 (10.100.0.0/22 + 10.100.4.0/22)
+  - 10.100.8.0/21 (10.100.8.0/22 + 10.100.12.0/22)
+  - 10.100.16.0/22
+  - 10.100.20.0/22
+  - 10.100.24.0/22
+  - 10.100.28.0/22
+
+  ***Nota:*** Según mi interpretación de la necesidad de este punto, se necesitan definir 6 subredes, pero básicamente si hago un subneteo obtengo 8 subredes, por lo cual
+  para no desperdiciar ninguna ip tal y como lo solicitan, agrupe dos subnetes en una 2 veces y así evito tener desperdicio de ips.
+
 - AWS Region: us-east-2
 - Instance Types = m5.large
 - Capacity Type = spot
@@ -55,6 +65,7 @@ Para monitorear Kafka, se pueden capturar sus métricas con "Prometheus" a trav�
 
 
 ![image-14.png](./media/image-14.png)
+
 
 **Despliegue**
 
@@ -78,15 +89,16 @@ privateCluster:
 vpc:
   subnets:
     private:
-      us-west-2b:
+      us-east-2a:
         id: <subnet-id>
-      us-west-2c:
+      us-east-2b:
         id: <subnet-id>
-      us-west-2d:
+      us-east-2c:
         id: <subnet-id>
 
 managedNodeGroups:
 - name: ng1
+  capacityType: SPOT
   instanceType: m5.large
   desiredCapacity: 3
   privateNetworking: true
@@ -114,9 +126,9 @@ resource "aws_eks_node_group" "example" {
   capacity_type   = "SPOT"
 
   scaling_config {
-    desired_size = 1
-    max_size     = 
-    min_size     = 1
+    desired_size = 3
+    max_size     = 3
+    min_size     = 3
   }
 
   depends_on = [
@@ -155,8 +167,12 @@ Características RDS:
 - Storage type        : gp2
 - Allocated storage   : 500 GB
 
+**Despliegue:**
 
-los componentes de código principales 
+Para realizar el despliegue de esta RDS, tengo un repo de ejemplo que construí en algún momento con terraform. Comparto aquí el link de mi repo público:
+
+https://gitlab.com/jaamarti/comsearch-lego-modules/-/tree/main/tf-rds
+
 
 ******* DOCKER + TROUBLESHOOTING *******
 ----------------------------------------
@@ -187,7 +203,7 @@ EXPOSE 80
 CMD /bin/docker-entrypoint;haproxy -f "/etc/haproxy/haproxy.cfg"
 HEALTHCHECK CMD wget -nv -t1 --spider 'http://localhost/' || exit 1
 ```
-**Cambios:**
+**Correcciones/mejoras:**
 - Agregué el paquete "haproxy" a los paquetes que se deen instalar con apk
 - Definí el inicio del balanceador como la última instrucción del CMD sin el "&" de tal manera que puediera asegurar que el contenedor seguiera ejecutandose
 - agregué un HEALTHCHECK para poder capurar en cualquier instante de tiempo el estado del contenedor
@@ -223,7 +239,7 @@ backend flask_backend
    server docker-app 127.0.0.1:9000 check verify none
 ```
 
-**Cambios:**
+**Correcciones/mejoras:**
 - Modifiqué el hostname del backend con la ip lookup 127.0.0.1 de tal forma que se puediera evitar el error de no resolución de dns.
 - Removí la declaración de los archivos de error. A este punto simplemente es un workaround porque finalmente la solución final es asegurar que existan estos archivos.
 
@@ -238,7 +254,7 @@ gunicorn -w 5 -b 127.0.0.1:9000 appgate:app --daemon
 sleep 3
 ```
 
-**Cambios:**
+**Correcciones/mejoras:**
 - Corregí el texto de los "echo"
 - Retiré el llamado del haproxy y lo puse como una instrucción aparte para que el contenedor no terminara despues de ejecutar el script sino que por el contrario continuara
   corriendo y el log del contenedor fuera finalmente el output del balancedor haproxy.
@@ -259,7 +275,7 @@ def hello():
 if __name__ == '__main__':
 ```
 
-**Cambios:**
+**Correcciones/mejoras:**
 - Este archivo lo agregué por completo y básicamente tenero una respuesta html ante la invocación de la aplicación al seleccionar la ruta "/"
 
 ##
@@ -272,7 +288,7 @@ if __name__ == "__main__":
         app.run()
 ```
 
-**Cambios:**
+**Correcciones/mejoras:**
 - Este archivo lo agregué para hacer un import de la aplicación "app" y sirve como integración con gunicorn
 
 ##
@@ -311,6 +327,16 @@ docker inspect --format='{{json .State.Health}}' a2e95d754993
 ***** KUBERNETES *****
 ----------------------
 
+Este punto lo realicé utilizando localmente las siguientes aplicaciones:
+
+- Minikube
+- Helm
+- Tree
+- Python
+- Kubectl
+- Docker Desktop
+- Prometheus + Graphana
+
 **1.** Creación archivo despliegue "deployment.yaml":
 
 ```yaml
@@ -336,6 +362,11 @@ spec:
         imagePullPolicy: Never
         ports:
         - containerPort: 80
+        readinessProbe:
+          tcpSocket:
+            port: 80
+          initialDelaySeconds: 5
+          periodSeconds: 10
 ```
 
 ##
@@ -465,6 +496,13 @@ kubectl port-forward -n prometheus prometheus-grafana-5c5885d488-b9mlj 3000
 
 ![image-13.png](./media/image-13.png)
 
+##
+
+**Conclusiones**:
+
+- Agregué un probe de tipo readiness para asegura que mi pod esté escucando y funcionando como debe ser.
+- Basicamente desplegue los mismos componentes definidos en el punto anterior (con las correcciones mencionadas), el balanceadoer haproxy 
+  y el backend gunicorn + flask.
 
 ##
 ##
