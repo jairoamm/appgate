@@ -21,3 +21,8 @@ spec:
         imagePullPolicy: Never
         ports:
         - containerPort: 80
+        readinessProbe:
+          tcpSocket:
+            port: 80
+          initialDelaySeconds: 5
+          periodSeconds: 10
