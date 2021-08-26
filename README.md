@@ -9,6 +9,8 @@ mensajes con brokers de Kafka y RabbitMQ, y comunicándose por medio de servicio
 
 **Respuesta:**
 
+**1. Java/MongoDB**
+
 Existen diferentes herramientas sobre las cuales se podría realizar un monitoreo de performance de aplicaciones java contenerizadas en microservicios. Usualmente he trabajo con Dynatrace, CA APM y Newrelic.  Para este caso me voy a enforcar en como realizarlo con NewRelic:
 
 Procedimiento:
@@ -31,10 +33,25 @@ Dada esta configuración, se podrían obtener las siguientes métricas en consol
 - SQL queries responses / APP
 - NoSQL queries responses / APP
 
+**2. Kafka**
+
 Para monitorear Kafka, se pueden capturar sus métricas con "Prometheus" a través de "JmxExporter" y a su vez se puede realizar una integración  con newrelic o dynatrace y así obtener todos los beneficios de Newrelic hub, logrando tener un monitoreo end-to-end al tener ya instalado el agente para java sobre docker.
 
+**3. RabitMQ**
 
-#
+Existe un plugin de Newrelic que puede ser utilizado para capturar diferentes métricas de RabitMQ. Las métricas podrían ser:
+
+- connectionsBlocked (Number of current connections in the state blocked)
+- connectionsBlocking (Number of current connections in the state blocking)
+- connectionsClosed (Number of current connections in the state closed)
+- connectionsClosing (Number of current connections in the state closing)
+- connectionsFlow (Number of current connections in the state flow)
+- connectionsOpening (Number of current connections in the state opening)
+- connectionsRunning (Number of current connections in the state running)
+- connectionsStarting (Number of current connections in the state starting)
+- connectionsTotal (Number of current connections to a given rabbitmq vhost)
+
+**Nota:** Se podría configurar un scale up a partir de la métrica de Queue size.
 
 ***** NETWORKING + SYSADMIN + CLOUD *****
 -----------------------------------------
@@ -157,7 +174,98 @@ terraform apply
 
 ##
 
-**2. Una base de datos en PostgreSQL**
+**2. Ejercicio Subnets**
+--------------------------------------
+
+Se dispone de una red 10.100.32.0/22 para servicios, se debe crear 4 subredes las cuales contienen (1 productiva, 1 Testting and QA,
+y 2 para BCP y/o crecimiento). Cada subred debe estar distribuido mínimo en 3 zonas de zonas sin desperdicio de IPs, 3 subredes para
+segmentos públicos y 3 para segmentos privados.
+
+**Respuesta:**
+
+Según mi interpretación, entiendo que deberían generarse 4 subredes (por ambiente) y que a su vez cada subred debe distribuirse en 3 AZs, por lo cual el calculó hasta el momento iría en "4*3" y adicionalmente se deben tener 6 subredes (3 públicas y 3 privadas) por ambiente, es decir, 
+"12*6" para un total de 72 subredes. De tal forma que las subredes que se deberían generar a partir de al red 10.100.32.0/22 serían las siguintes:
+
+```text
+10.100.32.0/28
+10.100.32.16/28
+10.100.32.32/28
+10.100.32.48/28
+10.100.32.64/28
+10.100.32.80/28
+10.100.32.96/28
+10.100.32.112/28
+10.100.32.128/28
+10.100.32.144/28
+10.100.32.160/28
+10.100.32.176/28
+10.100.32.192/28
+10.100.32.208/28
+10.100.32.224/28
+10.100.32.240/28
+10.100.33.0/28
+10.100.33.16/28
+10.100.33.32/28
+10.100.33.48/28
+10.100.33.64/28
+10.100.33.80/28
+10.100.33.96/28
+10.100.33.112/28
+10.100.33.128/28
+10.100.33.144/28
+10.100.33.160/28
+10.100.33.176/28
+10.100.33.192/28
+10.100.33.208/28
+10.100.33.224/28
+10.100.33.240/28
+10.100.34.0/28
+10.100.34.16/28
+10.100.34.32/28
+10.100.34.48/28
+10.100.34.64/28
+10.100.34.80/28
+10.100.34.96/28
+10.100.34.112/28
+10.100.34.128/28
+10.100.34.144/28
+10.100.34.160/28
+10.100.34.176/28
+10.100.34.192/28
+10.100.34.208/28
+10.100.34.224/28
+10.100.34.240/28
+10.100.35.0/28
+10.100.35.16/28
+10.100.35.32/28
+10.100.35.32/28
+10.100.35.64/28
+10.100.35.80/28
+10.100.35.96/28
+10.100.35.112/28
+10.100.35.127/29
+10.100.35.135/29
+10.100.35.143/29
+10.100.35.151/29
+10.100.35.159/29
+10.100.35.167/29
+10.100.35.175/29
+10.100.35.183/29
+10.100.35.191/29
+10.100.35.199/29
+10.100.35.215/29
+10.100.35.223/29
+10.100.35.231/29
+10.100.35.239/29
+10.100.35.247/29
+10.100.35.255/29
+```
+
+**Nota:** Creo que el texto no es totalmente claro y se puede presentar para tener diferentes interpretaciones.
+
+##
+
+**3. Una base de datos en PostgreSQL**
 --------------------------------------
 
 Características RDS:
@@ -176,7 +284,7 @@ https://gitlab.com/jaamarti/comsearch-lego-modules/-/tree/main/tf-rds
 
 ##
 
-**3. Un clúster de Kafka**
+**4. Un clúster de Kafka**
 --------------------------
 
 Características de Amazon Managed Streaming for Apache Kafka (Amazon MSK):
@@ -190,7 +298,7 @@ Características de Amazon Managed Streaming for Apache Kafka (Amazon MSK):
 
 ##
 
-**4. Un clúster de MongoDB**
+**5. Un clúster de MongoDB**
 --------------------------
 
 Apesar que no hay un servicio exacto de cluster mongoDB, en una colaboración entre AWS y MongoDB, se generaron una serie de templates tanto de instalación de MongoDB
@@ -212,7 +320,7 @@ La arquitectura propuesta es la siguiente:
 
 ##
 
-**5. 4 nodos EC2 que contiene servicios**
+**6. 4 nodos EC2 que contiene servicios**
 
 **Características:**
 
@@ -256,6 +364,7 @@ reusable en cualquier instante de tiempo en el futuro y que con un simple comand
 **Costo de implementación:**
 
 ![image-16.png](./media/image-16.png)
+
 
 Los costos los calculé desde la herramienta oficial de AWS. Comparto el link que contiene esta estimacion y en donde se podrán observar los detalles de cada 
 servicio discrimiado por plataforma:
@@ -414,6 +523,31 @@ docker inspect --format='{{json .State.Health}}' a2e95d754993
 
 ![image.png](./media/image.png)
 
+##
+
+**Manejo de Logs**
+
+Para manejar los logs básicamente yo desplegaría los siguientes componentes:
+
+- Kibana
+- Elastic Search
+- Logstash
+
+El trabajo se concentraría inicialmente en la configuración de logstash para la captura de los respectivos archivos logs, el cual
+se debería hacer con una directiva de tipo "file" en el input, como por ejemplo:
+
+```json
+input {
+  file {
+    path => "/tmp/access_log"
+    start_position => "beginning"
+  }
+}
+```
+
+Despues definiría expresiones en kibana para capturar indices y así realizar los dashboard y el analisis de data necesario con Kibana.
+
+##
 ##
 
 ***** KUBERNETES *****
