@@ -387,7 +387,7 @@ Componentes desplegados en docker fueron los siguientes:
 
 Los archivos de código utilizados (ya corregidos) son los siguientes:
 
-![image-1.png](./media/image-1.png)
+![image-20.png](./media/image-20.png)
 
 **- Dockerfile**
 
