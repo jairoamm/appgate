@@ -289,7 +289,7 @@ Características RDS:
 
 Para realizar el despliegue de esta RDS, tengo un repo de ejemplo que construí en algún momento con terraform. Comparto aquí el link de mi repo público:
 
-https://gitlab.com/jaamarti/comsearch-lego-modules/-/tree/main/tf-rds
+https://gitlab.com/jaamarti/tf-modules/-/tree/main/tf-rds
 
 
 ##
@@ -348,7 +348,7 @@ tipo spot y adicionalmente esperaría poder tener un ASG que me ayudara a libera
 Tengo un repositorio con código terraform que en algún momento cree para desplegar instancias EC2 con base a una ami asociadas a un launch template 
 y a un Auto scaling group:
 
-https://gitlab.com/jaamarti/comsearch-lego-modules/-/tree/main/tf-ec2
+https://gitlab.com/jaamarti/tf-modules/-/tree/main/tf-ec2
 
 
 ##
@@ -773,9 +773,9 @@ kubectl port-forward -n prometheus prometheus-grafana-5c5885d488-b9mlj 3000
 
 A continuación les presento algunos repo donde podrán observar el trabajo que he relizado con "cloudformation", "terraform" y con herramientas de testing como "terratest" y "chef ispec":
 
-- https://gitlab.com/jaamarti/comsearch/-/tree/master/
+- https://gitlab.com/jaamarti/tf-modules
 - https://gitlab.com/jaamarti/terraform-infra
-- https://gitlab.com/jaamarti/aws-infra/-/tree/master
+- https://gitlab.com/jaamarti/aws-infra
 
 ##
 ##
